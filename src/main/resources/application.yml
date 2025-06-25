@@ -26,5 +26,5 @@ spring:
 
 jwt:
   secret: your-256-bit-secret-key-here-must-be-at-least-32-characters
-  expiration: 30000        # 30 seconds in milliseconds
+  expiration: 600000        # 10 minutes in milliseconds
   refresh-expiration: 86400000  # 24 hours in milliseconds

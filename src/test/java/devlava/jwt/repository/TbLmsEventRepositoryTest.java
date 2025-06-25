@@ -9,9 +9,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.Calendar;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
-import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -25,135 +26,146 @@ class TbLmsEventRepositoryTest {
     @Autowired
     private MemberRepository memberRepository;
 
-    private Member testMember;
+    private Member testMember1;
+    private Member testMember2;
+    private Member testMember3;
+    private Member testMember4;
+    private Member testMember5;
 
     @BeforeEach
     void setUp() {
-        testMember = new Member();
-        testMember.setId("2125089");
-        testMember.setUsername("euhno");
-        testMember.setName("lava");
-        memberRepository.save(testMember);
+        testMember1 = new Member();
+        testMember1.setId("1111");
+        testMember1.setUsername("1");
+        testMember1.setName("lava");
+        memberRepository.save(testMember1);
+
+        testMember2 = new Member();
+        testMember2.setId("2222");
+        testMember2.setUsername("2");
+        testMember2.setName("lava");
+        memberRepository.save(testMember2);
+
+        testMember3 = new Member();
+        testMember3.setId("3333");
+        testMember3.setUsername("3");
+        testMember3.setName("lava");
+        memberRepository.save(testMember3);
+
+        testMember4 = new Member();
+        testMember4.setId("4444");
+        testMember4.setUsername("4");
+        testMember4.setName("lava");
+        memberRepository.save(testMember4);
+
+        testMember5 = new Member();
+        testMember5.setId("5555");
+        testMember5.setUsername("5");
+        testMember5.setName("lava");
+        memberRepository.save(testMember5);
     }
 
     @Test
-    @DisplayName("회원의 이벤트 참여 내역이 없는 경우 빈 리스트를 반환한다")
-    void shouldReturnEmptyListWhenNoEventParticipation() {
-        // when
-        List<TbLmsEvent> events = eventRepository.findByMemberId(testMember.getId());
-
-        // then
-        assertThat(events).isEmpty();
-    }
-
-    @Test
-    @DisplayName("회원의 이벤트 참여 내역이 있는 경우 참여 내역을 반환한다")
-    void shouldReturnEventListWhenMemberParticipated() {
+    @DisplayName("당첨내역이 없는 경우")
+    void findDrawResultByMemberId_1() {
         // given
-        TbLmsEvent event = new TbLmsEvent();
-        event.setMember(testMember);
-        event.setDraw(true);
-        event.setRank(1);
-        event.setCreateDt(new Date()); // 현재 시간 설정
-        eventRepository.save(event);
 
         // when
-        List<TbLmsEvent> events = eventRepository.findByMemberId(testMember.getId());
+        Optional<TbLmsEvent> result = eventRepository.findDrawResultByMemberId(testMember1.getId());
 
         // then
-        assertThat(events)
-                .isNotEmpty()
-                .hasSize(1);
-        assertThat(events.get(0))
-                .satisfies(savedEvent -> {
-                    assertThat(savedEvent.getMember()).isEqualTo(testMember);
-                    assertThat(savedEvent.isDraw()).isTrue();
-                    assertThat(savedEvent.getRank()).isEqualTo(1);
-                });
+        assertThat(result).isNotPresent();
     }
 
     @Test
-    @DisplayName("여러 날짜의 이벤트 중 당일 참여 이벤트만 조회된다")
-    void shouldOnlyReturnTodayEventParticipation() {
+    @DisplayName("당첨내역이 있는 경우")
+    void findDrawResultByMemberId_2() {
         // given
-        Calendar cal = Calendar.getInstance();
+        TbLmsEvent event1 = new TbLmsEvent();
+        event1.setDraw(false);
+        event1.setMember(testMember1);
+        event1.setCreateDt(new Date());
+        eventRepository.save(event1);
 
-        // 현재 시간 기준으로 오늘 자정 설정
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
-        Date startOfToday = cal.getTime();
+        TbLmsEvent event2 = new TbLmsEvent();
+        event2.setDraw(true);
+        event2.setMember(testMember2);
+        event2.setRank(1);
+        event2.setCreateDt(new Date());
+        eventRepository.save(event2);
 
-        // 내일 자정 설정
-        cal.add(Calendar.DAY_OF_MONTH, 1);
-        Date startOfTomorrow = cal.getTime();
-
-        // 어제 이벤트 (어제 오후 11시 59분)
-        cal.add(Calendar.DAY_OF_MONTH, -2); // 어제로 이동
-        cal.set(Calendar.HOUR_OF_DAY, 23);
-        cal.set(Calendar.MINUTE, 59);
-        cal.set(Calendar.SECOND, 59);
-
-        TbLmsEvent yesterdayEvent = new TbLmsEvent();
-        yesterdayEvent.setMember(testMember);
-        yesterdayEvent.setDraw(true);
-        yesterdayEvent.setRank(1);
-        yesterdayEvent.setCreateDt(cal.getTime());
-        eventRepository.save(yesterdayEvent);
-
-        // 오늘 이벤트 (오늘 오후 12시)
-        cal.add(Calendar.DAY_OF_MONTH, 1); // 오늘로 이동
-        cal.set(Calendar.HOUR_OF_DAY, 12);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-
-        TbLmsEvent todayEvent = new TbLmsEvent();
-        todayEvent.setMember(testMember);
-        todayEvent.setDraw(true);
-        todayEvent.setRank(2);
-        todayEvent.setCreateDt(cal.getTime());
-        eventRepository.save(todayEvent);
-
-        // 내일 이벤트 (내일 오전 00시 01분)
-        cal.add(Calendar.DAY_OF_MONTH, 1); // 내일로 이동
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 1);
-        cal.set(Calendar.SECOND, 0);
-
-        TbLmsEvent tomorrowEvent = new TbLmsEvent();
-        tomorrowEvent.setMember(testMember);
-        tomorrowEvent.setDraw(true);
-        tomorrowEvent.setRank(3);
-        tomorrowEvent.setCreateDt(cal.getTime());
-        eventRepository.save(tomorrowEvent);
-
+        TbLmsEvent event3 = new TbLmsEvent();
+        event3.setDraw(true);
+        event3.setMember(testMember3);
+        event3.setRank(1);
+        event3.setCreateDt(new Date());
+        eventRepository.save(event3);
         // when
-        List<TbLmsEvent> todayEvents = eventRepository.findByMemberIdAndCreateDtBetween(
-                testMember.getId(), startOfToday, startOfTomorrow);
-
+        Optional<TbLmsEvent> result = eventRepository.findDrawResultByMemberId(testMember2.getId());
         // then
-        System.out.println("todayEvents.size() = " + todayEvents.size());
-        System.out.println("Today start: " + startOfToday);
-        System.out.println("Today end: " + startOfTomorrow);
-        todayEvents.forEach(event -> {
-            System.out.println("Event date: " + event.getCreateDt() + ", rank: " + event.getRank());
-        });
-
-        assertThat(todayEvents)
-                .isNotEmpty()
-                .hasSize(1);
-        assertThat(todayEvents.get(0))
-                .satisfies(savedEvent -> {
-                    assertThat(savedEvent.getMember()).isEqualTo(testMember);
-                    assertThat(savedEvent.getRank()).isEqualTo(2); // 오늘 이벤트의 rank는 2
-                    assertThat(savedEvent.getCreateDt()).isBetween(startOfToday, startOfTomorrow);
-                });
+        assertThat(result).isPresent();
     }
 
-    private Date getDateWithOffset(int days) {
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DAY_OF_MONTH, days);
-        return cal.getTime();
+    @Test
+    @DisplayName("당일 등수별 인원 조회")
+    public void countByCreateDtBetweenAndRank_1() throws Exception {
+        // given
+        LocalDate today = LocalDate.now();
+        Date startOfDay = Date.from(today.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date endOfDay = Date.from(today.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        Date yesterday = Date.from(
+                LocalDate.now()
+                        .minusDays(1)
+                        .atStartOfDay(ZoneId.systemDefault())
+                        .toInstant()
+        );
+
+        TbLmsEvent event1 = new TbLmsEvent();
+        event1.setDraw(false);
+        event1.setMember(testMember1);
+        event1.setCreateDt(yesterday);
+        eventRepository.save(event1);
+
+        TbLmsEvent event2 = new TbLmsEvent();
+        event2.setDraw(true);
+        event2.setMember(testMember2);
+        event2.setRank(1);
+        event2.setCreateDt(yesterday);
+        eventRepository.save(event2);
+
+        TbLmsEvent event3 = new TbLmsEvent();
+        event3.setDraw(true);
+        event3.setMember(testMember3);
+        event3.setRank(1);
+        event3.setCreateDt(new Date());
+        eventRepository.save(event3);
+
+        TbLmsEvent event4 = new TbLmsEvent();
+        event4.setDraw(true);
+        event4.setMember(testMember4);
+        event4.setRank(1);
+        event4.setCreateDt(new Date());
+        eventRepository.save(event4);
+
+        TbLmsEvent event5 = new TbLmsEvent();
+        event5.setDraw(true);
+        event5.setMember(testMember5);
+        event5.setRank(2);
+        event5.setCreateDt(new Date());
+        eventRepository.save(event5);
+
+        TbLmsEvent event6 = new TbLmsEvent();
+        event6.setDraw(true);
+        event6.setMember(testMember1);
+        event6.setRank(2);
+        event6.setCreateDt(new Date());
+        eventRepository.save(event6);
+        //when
+        long rank1 = eventRepository.countByCreateDtBetweenAndRank(startOfDay, endOfDay, 1);
+        long rank2 = eventRepository.countByCreateDtBetweenAndRank(startOfDay, endOfDay, 2);
+        //then
+        assertThat(rank1).isEqualTo(2L);
+        assertThat(rank2).isEqualTo(2L);
     }
 }
