@@ -23,6 +23,9 @@ public class Member {
     private String name;
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TbLmsEvent> events = new ArrayList<>();
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Token> tokens = new ArrayList<>();
 
     @OneToOne(mappedBy = "member", cascade = CascadeType.ALL)
