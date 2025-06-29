@@ -1,7 +1,7 @@
 spring:
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: create-drop
     show-sql: true
     properties:
       hibernate:
@@ -12,6 +12,10 @@ spring:
   sql:
     init:
       mode: always
+  servlet:
+    multipart:
+      max-file-size: 1000MB
+      max-request-size: 1000MB
 
   h2:
     console:
@@ -28,3 +32,7 @@ jwt:
   secret: your-256-bit-secret-key-here-must-be-at-least-32-characters
   expiration: 600000        # 10 minutes in milliseconds
   refresh-expiration: 86400000  # 24 hours in milliseconds
+
+file:
+  upload:
+    path: ${user.home}/uploads/board

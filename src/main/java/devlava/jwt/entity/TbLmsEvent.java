@@ -32,10 +32,4 @@ public class TbLmsEvent {
     @Column(name = "CREATE_DT", updatable = false)
     private Date createDt;
 
-    // 연관관계 편의 메서드
-    public void asMember(Member member) {
-        this.member = member;
-        member.getEvents().add(this);
-    }
-
 }
