@@ -21,6 +21,9 @@ public class BoardDto {
     @Builder.Default
     private List<BoardRefDto> attachments = new ArrayList<>();
 
+    @Builder.Default
+    private List<Long> remainingFileIds = new ArrayList<>();
+
     @Data
     @Builder
     public static class BoardRefDto {
