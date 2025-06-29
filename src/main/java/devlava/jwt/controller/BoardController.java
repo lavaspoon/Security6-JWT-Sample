@@ -1,6 +1,7 @@
 package devlava.jwt.controller;
 
 import devlava.jwt.dto.BoardDto;
+import devlava.jwt.dto.FileDownloadDto;
 import devlava.jwt.service.BoardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
@@ -56,7 +57,7 @@ public class BoardController {
 
     @GetMapping("/download/{fileId}")
     public ResponseEntity<Resource> downloadFile(@PathVariable Long fileId) throws IOException {
-        BoardService.FileDownloadDto downloadDto = boardService.downloadFile(fileId);
+        FileDownloadDto downloadDto = boardService.downloadFile(fileId);
 
         String encodedFileName = URLEncoder.encode(downloadDto.getOriginalFileName(), StandardCharsets.UTF_8)
                 .replaceAll("\\+", "%20");
